@@ -19,7 +19,26 @@
         "command": "vscode-binutils.BinaryFileViewer",
         "title": "Binary File Viewer"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "elf-explorer",
+          "title": "SQLpassion BinUtils",
+          "icon": "media/dep.svg"
+        }
+      ]
+    },
+    "views": {
+      "elf-explorer": [
+        {
+          "id": "elfBinaryViewer",
+          "name": "ELF File Reader",
+          "icon": "media/dep.svg",
+          "contextualTitle": ""
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
