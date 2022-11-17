@@ -1,5 +1,6 @@
 import { TreeDataProvider, Event, TreeItem, TreeItemCollapsibleState, ProviderResult } from "vscode";
-import { ELFFile} from "./elf-library/ELFFile";
+import { ELFFile } from "./elf-library/ELFFile";
+import { ARCHITECTURE, DATA_ENCODING, ELF_CLASS, ELF_SECTION_TYPE, OBJECT_TYPE } from "./elf-library/Enums";
 import * as path from 'path';
 
 export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
@@ -9,35 +10,37 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
 
     constructor(fileName: string)
     {
-        this.data = [];
-        
         // Open the ELF binary file provided by the file name parameter
         let elfFile = new ELFFile(fileName);
-        console.log(elfFile);
-
+        this.data = [];
+        
         // ELF Header
         let elfHeader = new DataItem("ELF Header", TreeItemCollapsibleState.Expanded, "elfheader.png");
         elfHeader.children = [];
         this.data.push(elfHeader);
         elfHeader.children.push(new DataItem("Magic Constant: " + elfFile.MagicConstant, TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Version: " + elfFile.Version, TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Class: " + ELF_CLASS[elfFile.Class], TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Data Encoding: " + DATA_ENCODING[elfFile.DataEncoding], TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Object Type: " + OBJECT_TYPE[elfFile.ObjectType], TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Architecture: " + ARCHITECTURE[elfFile.Architecture], TreeItemCollapsibleState.None, "binarydata.png"));
+        elfHeader.children.push(new DataItem("Entry Point: 0x" + elfFile.EntryPoint.toString(16), TreeItemCollapsibleState.None, "binarydata.png"));
 
         // Sections
-        let sections = new DataItem("Sections",  TreeItemCollapsibleState.Expanded, "sections.png");
+        let sections = new DataItem("Sections",  TreeItemCollapsibleState.Collapsed, "sections.png");
         sections.children = [];
         this.data.push(sections);
 
-        // Iterate over the different ELF sections
-        for (var i = 0; i < elfFile.NumberOfSections; i++)
+        // Iterate over the different ELF section headers
+        for (var i = 0; i < elfFile.Sections.length; i++)
         {
-            let section = new DataItem("Section " + i.toString(), TreeItemCollapsibleState.Collapsed, "section.png");
+            let section = new DataItem(elfFile.Sections[i].Name + " (" + ELF_SECTION_TYPE[elfFile.Sections[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "section.png");
             section.children = [];
 
-            for (var j = 0; j < 5; j++)
-            {
-                let property = new DataItem("Property "+ j.toString(), TreeItemCollapsibleState.None, "binarydata.png");
-                section.children[j] = property;
-            }
-
+            // Add all necessary section header properties
+            section.children.push(new DataItem("Virtual Address: 0x" + elfFile.Sections[i].VirtualAddress.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
+            section.children.push(new DataItem("Offset: 0x" + elfFile.Sections[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
+            section.children.push(new DataItem("Size: " + elfFile.Sections[i].Size, TreeItemCollapsibleState.None, "binarydata.png"));
             sections.children.push(section);
         }
     }
