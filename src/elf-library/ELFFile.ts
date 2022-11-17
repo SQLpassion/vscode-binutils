@@ -20,6 +20,7 @@ export class ELFFile
     private _entryPoint: bigint;
     private _programHeaderOffset: bigint;
     private _sectionHeaderOffset: bigint;
+    private _sectionHeaderSize: number;
     private _stringTableSectionIndex: number;
     private _stringTable: string;
 
@@ -49,6 +50,7 @@ export class ELFFile
         this._entryPoint = 0n;
         this._programHeaderOffset = 0n;
         this._sectionHeaderOffset = 0n;
+        this._sectionHeaderSize = 0;
         this._numberOfSections = 0;
         this._stringTableSectionIndex = 0;
         this._stringTable = "";
@@ -85,6 +87,7 @@ export class ELFFile
         this._entryPoint = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.ENTRY_POINT);
         this._programHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_OFFSET);
         this._sectionHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.SECTION_HEADER_OFFSET);
+        this._sectionHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.SECTION_HEADER_SIZE);
         this._numberOfSections = this._binaryData.readUint8(ELF_HEADER_OFFSET.SECTION_COUNT);
         this._stringTableSectionIndex = this._binaryData.readUint8(ELF_HEADER_OFFSET.STRING_TABLE_SECTION_INDEX);
     }
@@ -93,8 +96,8 @@ export class ELFFile
     ReadStringTable(): void
     {
         // Read the string table data
-        var offset = Number(this._sectionHeaderOffset) + Number(this._stringTableSectionIndex) * 64;
-        var stringTableSection = new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + 64));
+        var offset = Number(this._sectionHeaderOffset) + Number(this._stringTableSectionIndex) * this._sectionHeaderSize;
+        var stringTableSection = new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize));
         this._stringTable = this._binaryData.subarray(Number(stringTableSection.Offset), Number(stringTableSection.Offset + stringTableSection.Size)).toString();
     }
 
@@ -108,10 +111,10 @@ export class ELFFile
         for (var i = 0; i < this._numberOfSections; i++)
         {
             // Create a new ELFSectionHeader object
-            sections.push(new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + 64), this._stringTable));
+            sections.push(new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize), this._stringTable));
 
             // Move on to the next section header
-            offset += 64n;
+            offset += BigInt(this._sectionHeaderSize);
         }
 
         return sections;

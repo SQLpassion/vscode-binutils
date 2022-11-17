@@ -39,7 +39,7 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
 
             // Add all necessary section header properties
             section.children.push(new DataItem("Virtual Address: 0x" + elfFile.Sections[i].VirtualAddress.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
-            section.children.push(new DataItem("Offset: 0x" + elfFile.Sections[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
+            section.children.push(new DataItem("File Offset: 0x" + elfFile.Sections[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
             section.children.push(new DataItem("Size: " + elfFile.Sections[i].Size, TreeItemCollapsibleState.None, "binarydata.png"));
             sections.children.push(section);
 

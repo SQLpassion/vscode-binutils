@@ -19,6 +19,7 @@ export enum ELF_HEADER_OFFSET
     ENTRY_POINT =                   24,
     PROGRAM_HEADER_OFFSET =         32,
     SECTION_HEADER_OFFSET =         40,
+    SECTION_HEADER_SIZE =           58,
     SECTION_COUNT =                 60,
     STRING_TABLE_SECTION_INDEX =    62
 }
