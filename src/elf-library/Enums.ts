@@ -54,7 +54,7 @@ export enum ARCHITECTURE
     NONE =      0,
     I386 =      3,
     X86_64 =    62,
-    AARCH64	=   183,
+    AARCH64 =   183,
 }
 
 /***********************/
@@ -81,7 +81,7 @@ export enum ELF_SECTION_TYPE
     STRING_TABLE =                  3,
     RELOCATION_ENTRIES =            4,
     HASH_TABLE =                    5,
-    DYNAMIC_LINKING	=               6,
+    DYNAMIC_LINKING =               6,
     NOTES =                         7,
     BSS =                           8,
     RELOCATION_ENTRIES_NO_ADDENDS = 9,
