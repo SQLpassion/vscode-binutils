@@ -42,6 +42,42 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
             section.children.push(new DataItem("Offset: 0x" + elfFile.Sections[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
             section.children.push(new DataItem("Size: " + elfFile.Sections[i].Size, TreeItemCollapsibleState.None, "binarydata.png"));
             sections.children.push(section);
+
+            // Flags
+            let flags = new DataItem("Flags", TreeItemCollapsibleState.Expanded, "sections.png");
+            flags.children = [];
+            section.children.push(flags);
+
+            // Add all the necessary flag properties
+            if (elfFile.Sections[i].Writable)
+                flags.children.push(new DataItem("Writable (W)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].Allocatable)
+                flags.children.push(new DataItem("Allocable (A)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].Executable)
+                flags.children.push(new DataItem("Executable (X)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].Mergable)
+                flags.children.push(new DataItem("Mergable (M)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].ContainsStrings)
+                flags.children.push(new DataItem("Contains Strings (S)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].InfoLink)
+                flags.children.push(new DataItem("Info (I)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].PreserveLinkOrder)
+                flags.children.push(new DataItem("Preserve Link Order (L)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].NonConformingOSHandling)
+                flags.children.push(new DataItem("Extra OS processing required (O)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].GroupMember)
+                flags.children.push(new DataItem("Group Member (G)", TreeItemCollapsibleState.None, "binarydata.png"));
+
+            if (elfFile.Sections[i].HoldsThreadLocalData)
+                flags.children.push(new DataItem("Holds Thread-Local Storage (T)", TreeItemCollapsibleState.None, "binarydata.png"));
         }
     }
 

@@ -93,3 +93,18 @@ export enum ELF_SECTION_TYPE
     SECTION_GROUP =                 17,
     EXTENDED_SECTION_INDEXES =      18
 }
+
+// The various flags
+export enum ELF_SECTION_FLAGS
+{
+    WRITABLE =          0,
+    ALLOCATABLE =       1,
+    EXECUTABLE =        2,
+    MERGABLE =          4,
+    STRING =            5,
+    INFO_LINK =         6,
+    LINK_ORDER =        7,
+    OS_NONCONFORMING =  8,
+    GROUP =             9,
+    TLS =               10
+}
