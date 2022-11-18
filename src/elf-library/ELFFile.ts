@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as fs from 'fs';
 import { isVariableStatement } from 'typescript';
+import { ELFProgramHeader } from './ELFProgramHeader';
 import { ELFSectionHeader } from './ELFSectionHeader';
 import { ARCHITECTURE, DATA_ENCODING, ELF_CLASS, ELF_HEADER_OFFSET, OBJECT_TYPE } from "./Enums";
 
@@ -17,10 +18,12 @@ export class ELFFile
     private _objectType: OBJECT_TYPE;
     private _architecture: ARCHITECTURE;
     private _numberOfSections: number;
+    private _numberOfSegments: number;
     private _entryPoint: bigint;
     private _programHeaderOffset: bigint;
     private _sectionHeaderOffset: bigint;
     private _sectionHeaderSize: number;
+    private _programHeaderSize: number;
     private _stringTableSectionIndex: number;
     private _stringTable: string;
 
@@ -35,7 +38,8 @@ export class ELFFile
     public get ProgramHeaderOffset() { return this._programHeaderOffset; }
     public get SectionHeaderOffset() { return this._sectionHeaderOffset; }
 
-    public Sections: ELFSectionHeader[];
+    public Sections: ELFSectionHeader [];
+    public Segments: ELFProgramHeader [];
 
     constructor(fileName: string)
     {
@@ -51,7 +55,9 @@ export class ELFFile
         this._programHeaderOffset = 0n;
         this._sectionHeaderOffset = 0n;
         this._sectionHeaderSize = 0;
+        this._programHeaderSize = 0;
         this._numberOfSections = 0;
+        this._numberOfSegments = 0;
         this._stringTableSectionIndex = 0;
         this._stringTable = "";
 
@@ -63,6 +69,9 @@ export class ELFFile
 
         // Read the ELF section headers
         this.Sections = this.ReadSectionHeaders();
+
+        // Read the ELF program headers
+        this.Segments = this.ReadProgramHeaders(this.Sections);
     }
 
     // Reads the whole ELF file header
@@ -88,6 +97,8 @@ export class ELFFile
         this._programHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_OFFSET);
         this._sectionHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.SECTION_HEADER_OFFSET);
         this._sectionHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.SECTION_HEADER_SIZE);
+        this._programHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_SIZE);
+        this._numberOfSegments = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_COUNT);
         this._numberOfSections = this._binaryData.readUint8(ELF_HEADER_OFFSET.SECTION_COUNT);
         this._stringTableSectionIndex = this._binaryData.readUint8(ELF_HEADER_OFFSET.STRING_TABLE_SECTION_INDEX);
     }
@@ -102,7 +113,7 @@ export class ELFFile
     }
 
     // Reads the various ELF section headers
-    ReadSectionHeaders(): ELFSectionHeader[]
+    ReadSectionHeaders(): ELFSectionHeader []
     {
         var offset = this._sectionHeaderOffset;
         var sections : ELFSectionHeader[];
@@ -111,12 +122,39 @@ export class ELFFile
         for (var i = 0; i < this._numberOfSections; i++)
         {
             // Create a new ELFSectionHeader object
-            sections.push(new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize), this._stringTable));
+            var section = new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize), this._stringTable);
+
+            // Skip the NULL section...
+            if (section.Name !== "")
+            {
+                sections.push(section);
+            }
 
             // Move on to the next section header
             offset += BigInt(this._sectionHeaderSize);
         }
 
+        // Return all found sections
         return sections;
+    }
+
+    // Reads the various ELF program headers
+    ReadProgramHeaders(Sections: ELFSectionHeader []): ELFProgramHeader []
+    {
+        var offset = this._programHeaderOffset;
+        var segments : ELFProgramHeader [];
+        segments = [];
+
+        for (var i = 0; i < this._numberOfSegments; i++)
+        {
+            // Create a new ELFProgramHeader object
+            segments.push(new ELFProgramHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._programHeaderSize), Sections));
+
+            // Move on to the next program header
+            offset += BigInt(this._programHeaderSize);
+        }
+
+        // Return all found segments
+        return segments;
     }
 }

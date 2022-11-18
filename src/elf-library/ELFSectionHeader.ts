@@ -16,7 +16,7 @@ export class ELFSectionHeader
     // Public accessors
     public get Name() { return this._name; }
     public get VirtualAddress() { return this._virtualAddress; }
-    public get Type() {return this._type; }
+    public get Type() { return this._type; }
     public get Offset() { return this._offset; }
     public get Size() { return this._size; }
     public get Flags() { return this._flags; }
