@@ -180,3 +180,57 @@ export enum ELF_SEGMENT_FLAGS
     WRITABLE =      1,
     READABLE =      2
 }
+
+/***********************/
+/*   SYMBOL TABLE      */
+/***********************/
+
+// Constants needed for parsing an ELF Symbol
+export enum ELF_SYMBOL_TABLE_OFFSET
+{
+    NAME =                  0,
+    INFO =                  4,
+    OTHER =                 5,
+    SECTION_TABLE_INDEX =   6,
+    VALUE =                 8,
+    SIZE =                  16
+}
+
+// The various Symbol Types
+export enum ELF_SYMBOL_TYPE
+{
+    NOTYPE =    0,
+    OBJECT =    1,
+    FUNC =      2,
+    SECTION =   3,
+    FILE =      4,
+    COMMON =    5,
+    TLS =       6,
+    NUM =       7,
+    GNU_IFUNC = 10,
+    HIOS =      12,
+    LOPROC =    13,
+    HIPROC =    15
+}
+
+// The various Symbol Bindings
+export enum ELF_SYMBOL_BINDING
+{
+    LOCAL =         0,
+    GLOBAL =        1,
+    WEAK =          2,
+    NUM =           3,
+    GNU_UNIQUE =    10,
+    HIOS =          12,
+    LOPROC =        13,
+    HIPROC =        15
+}
+
+// The various Symbol visibility options
+export enum ELF_SYMBOL_VISIBILITY
+{
+    DEFAULT =   0,
+    INTERNAL =  1,
+    HIDDEN =    2,
+    PROTECTED = 3
+}

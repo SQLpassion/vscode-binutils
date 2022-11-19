@@ -26,7 +26,7 @@ suite('SQLpassion BinUtils Test Suite', () =>
 		assert.equal(elfFile.ProgramHeaderOffset, 64);
 		assert.equal(elfFile.SectionHeaderOffset, 10024);
 
-		assert.equal(elfFile.Sections.length, 34);
+		assert.equal(elfFile.SectionHeaders.length, 34);
 	});
 
 	test('ELF Header Test - RELOCATABLE #1', () =>
@@ -42,6 +42,6 @@ suite('SQLpassion BinUtils Test Suite', () =>
 		assert.equal(elfFile.ProgramHeaderOffset, 0);
 		assert.equal(elfFile.SectionHeaderOffset, 1160);
 
-		assert.equal(elfFile.Sections.length, 16);
+		assert.equal(elfFile.SectionHeaders.length, 16);
 	});
 });

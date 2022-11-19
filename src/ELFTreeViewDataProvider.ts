@@ -26,58 +26,85 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
         elfHeader.children.push(new DataItem("Architecture: " + ARCHITECTURE[elfFile.Architecture], TreeItemCollapsibleState.None, "binarydata.png"));
         elfHeader.children.push(new DataItem("Entry Point: 0x" + elfFile.EntryPoint.toString(16), TreeItemCollapsibleState.None, "binarydata.png"));
 
-        // Sections
-        let sections = new DataItem("Sections (" + elfFile.Sections.length.toString() + ")",  TreeItemCollapsibleState.Collapsed, "sections.png");
+        // Section
+        let sections = new DataItem("Sections (" + elfFile.SectionHeaders.length.toString() + ")",  TreeItemCollapsibleState.Collapsed, "sections.png");
         sections.children = [];
         this.data.push(sections);
 
         // Iterate over the different ELF section headers
-        for (var i = 0; i < elfFile.Sections.length; i++)
+        for (var i = 0; i < elfFile.SectionHeaders.length; i++)
         {
-            let section = new DataItem(elfFile.Sections[i].Name + " (" + ELF_SECTION_TYPE[elfFile.Sections[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "section.png");
-            section.children = [];
+            let sectionHeader = new DataItem(elfFile.SectionHeaders[i].Name + " (" + ELF_SECTION_TYPE[elfFile.SectionHeaders[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "section.png");
+            sectionHeader.children = [];
 
             // Add all necessary section header properties
-            section.children.push(new DataItem("Virtual Address: 0x" + elfFile.Sections[i].VirtualAddress.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
-            section.children.push(new DataItem("File Offset: 0x" + elfFile.Sections[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
-            section.children.push(new DataItem("Size: " + elfFile.Sections[i].Size, TreeItemCollapsibleState.None, "binarydata.png"));
-            sections.children.push(section);
+            sectionHeader.children.push(new DataItem("Virtual Address: 0x" + elfFile.SectionHeaders[i].VirtualAddress.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
+            sectionHeader.children.push(new DataItem("File Offset: 0x" + elfFile.SectionHeaders[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
+            sectionHeader.children.push(new DataItem("Size: " + elfFile.SectionHeaders[i].Size, TreeItemCollapsibleState.None, "binarydata.png"));
+            sections.children.push(sectionHeader);
 
             // Flags
-            let flags = new DataItem("Flags", TreeItemCollapsibleState.Expanded, "sections.png");
+            let flags = new DataItem("Flags", TreeItemCollapsibleState.Collapsed, "sections.png");
             flags.children = [];
-            section.children.push(flags);
+            sectionHeader.children.push(flags);
 
             // Add all the necessary flag properties
-            if (elfFile.Sections[i].Writable)
+            if (elfFile.SectionHeaders[i].Writable)
                 {flags.children.push(new DataItem("Writable (W)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].Allocatable)
+            if (elfFile.SectionHeaders[i].Allocatable)
                 {flags.children.push(new DataItem("Allocable (A)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].Executable)
+            if (elfFile.SectionHeaders[i].Executable)
                 {flags.children.push(new DataItem("Executable (X)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].Mergable)
+            if (elfFile.SectionHeaders[i].Mergable)
                 {flags.children.push(new DataItem("Mergable (M)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].ContainsStrings)
+            if (elfFile.SectionHeaders[i].ContainsStrings)
                 {flags.children.push(new DataItem("Contains Strings (S)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].InfoLink)
+            if (elfFile.SectionHeaders[i].InfoLink)
                 {flags.children.push(new DataItem("Info (I)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].PreserveLinkOrder)
+            if (elfFile.SectionHeaders[i].PreserveLinkOrder)
                 {flags.children.push(new DataItem("Preserve Link Order (L)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].NonConformingOSHandling)
+            if (elfFile.SectionHeaders[i].NonConformingOSHandling)
                 {flags.children.push(new DataItem("Extra OS processing required (O)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].GroupMember)
+            if (elfFile.SectionHeaders[i].GroupMember)
                 {flags.children.push(new DataItem("Group Member (G)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            if (elfFile.Sections[i].HoldsThreadLocalData)
+            if (elfFile.SectionHeaders[i].HoldsThreadLocalData)
                 {flags.children.push(new DataItem("Holds Thread-Local Storage (T)", TreeItemCollapsibleState.None, "binarydata.png"));}
+
+            // Content
+            var content = new DataItem("Content", TreeItemCollapsibleState.Collapsed, "sections.png");
+            content.children = [];
+            sectionHeader.children.push(content);
+
+            // Get the Section specific content
+            var data: DataItem [] = elfFile.SectionHeaders[i].Section.ReturnUIContent();
+
+            // Add the Section specific content to the TreeView
+            for (j = 0; j < data.length; j++)
+            {
+                content.children.push(data[j]);
+            }
+
+            // Symbols
+            var symbols = new DataItem("Symbols", TreeItemCollapsibleState.Collapsed, "sections.png");
+            symbols.children = [];
+            sectionHeader.children.push(symbols);
+
+            // Get the Symbols for the current section
+            var symbolItems = elfFile.GetSymbolTableSection().GetSymbolsForSection(elfFile.SectionHeaders[i].Name);
+
+            for (j = 0; j < symbolItems.length; j++)
+            {
+                symbols.children.push(symbolItems[j]);
+            }
         }
 
         // Segments
@@ -146,7 +173,7 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
     }
 }
 
-class DataItem extends TreeItem
+export class DataItem extends TreeItem
 {
     public children: DataItem[] | undefined;
 

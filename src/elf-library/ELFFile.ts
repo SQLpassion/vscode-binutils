@@ -4,6 +4,8 @@ import { isVariableStatement } from 'typescript';
 import { ELFProgramHeader } from './ELFProgramHeader';
 import { ELFSectionHeader } from './ELFSectionHeader';
 import { ARCHITECTURE, DATA_ENCODING, ELF_CLASS, ELF_HEADER_OFFSET, OBJECT_TYPE } from "./Enums";
+import { ELFStringTableSection } from './Sections/ELFStringTableSection';
+import { ELFSymbolTable } from './Sections/ELFSymbolTable';
 
 export class ELFFile
 {
@@ -38,7 +40,7 @@ export class ELFFile
     public get ProgramHeaderOffset() { return this._programHeaderOffset; }
     public get SectionHeaderOffset() { return this._sectionHeaderOffset; }
 
-    public Sections: ELFSectionHeader [];
+    public SectionHeaders: ELFSectionHeader [];
     public Segments: ELFProgramHeader [];
 
     constructor(fileName: string)
@@ -62,20 +64,20 @@ export class ELFFile
         this._stringTable = "";
 
         // Read the ELF Header
-        this.ReadHeader();
+        this.ReadELFHeader();
 
-        // Read the String Table
-        this.ReadStringTable();
+        // Read the Section Header String Table
+        this.ReadSectionHeaderStringTable();
 
         // Read the ELF section headers
-        this.Sections = this.ReadSectionHeaders();
+        this.SectionHeaders = this.ReadSectionHeaders();
 
         // Read the ELF program headers
-        this.Segments = this.ReadProgramHeaders(this.Sections);
+        this.Segments = this.ReadProgramHeaders(this.SectionHeaders);
     }
 
     // Reads the whole ELF file header
-    ReadHeader(): void
+    ReadELFHeader(): void
     {
         // Read the magic constant
         this._magicConstant = 
@@ -104,11 +106,11 @@ export class ELFFile
     }
 
     // Reads the string table
-    ReadStringTable(): void
+    ReadSectionHeaderStringTable(): void
     {
         // Read the string table data
         var offset = Number(this._sectionHeaderOffset) + Number(this._stringTableSectionIndex) * this._sectionHeaderSize;
-        var stringTableSection = new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize));
+        var stringTableSection = new ELFSectionHeader(this, 0, this._binaryData, Number(offset), Number(offset) + this._sectionHeaderSize);
         this._stringTable = this._binaryData.subarray(Number(stringTableSection.Offset), Number(stringTableSection.Offset + stringTableSection.Size)).toString();
     }
 
@@ -122,7 +124,7 @@ export class ELFFile
         for (var i = 0; i < this._numberOfSections; i++)
         {
             // Create a new ELFSectionHeader object
-            var section = new ELFSectionHeader(this._binaryData.subarray(Number(offset), Number(offset) + this._sectionHeaderSize), this._stringTable);
+            var section = new ELFSectionHeader(this, i, this._binaryData, Number(offset), Number(offset) + this._sectionHeaderSize, this._stringTable);
 
             // Skip the NULL section...
             if (section.Name !== "")
@@ -156,5 +158,35 @@ export class ELFFile
 
         // Return all found segments
         return segments;
+    }
+
+    // Returns the String Table Section
+    GetStringTableSection(): ELFStringTableSection
+    {
+        for (var i = 0; i < this._numberOfSections; i++)
+        {
+            if (this.SectionHeaders[i].Name === ".strtab")
+            {
+                return this.SectionHeaders[i].Section as ELFStringTableSection;
+            }
+        }
+
+        // The String Table Section was not found
+        throw new Error("The String Table Section was not found.");
+    }
+
+    // Returns the Symbol Table Section
+    GetSymbolTableSection(): ELFSymbolTable
+    {
+        for (var i = 0; i < this._numberOfSections; i++)
+        {
+            if (this.SectionHeaders[i].Name === ".symtab")
+            {
+                return this.SectionHeaders[i].Section as ELFSymbolTable;
+            }
+        }
+
+        // The String Table Section was not found
+        throw new Error("The String Table Section was not found.");
     }
 }
