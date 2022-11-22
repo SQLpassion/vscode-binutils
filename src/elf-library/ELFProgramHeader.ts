@@ -45,7 +45,7 @@ export class ELFProgramHeader
     }
 
     // Maps the various ELF sections to the ELF segments
-    SectionToSegmentMapping(sections: ELFSectionHeader []): ELFSectionHeader []
+    private SectionToSegmentMapping(sections: ELFSectionHeader []): ELFSectionHeader []
     {
         var containedSections : ELFSectionHeader[];
         containedSections = [];

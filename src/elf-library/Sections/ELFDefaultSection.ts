@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { isBooleanObject } from "util/types";
 import { TreeItemCollapsibleState } from "vscode";
 import { DataItem } from "../../ELFTreeViewDataProvider";
 import { IELFSection } from "./IELFSection";
@@ -19,7 +18,7 @@ export class ELFDefaultSection implements IELFSection
     }
 
     // Returns the raw binary hex content for the ELF section
-    ReturnUIContent(): DataItem []
+    public ReturnUIContent(): DataItem []
     {
         var content : DataItem[];
         var hexContent : string;
@@ -63,7 +62,7 @@ export class ELFDefaultSection implements IELFSection
     }
 
      // Returns the raw binary content from the ELF Section
-     ReturnRawBinaryContent(): Buffer
+     public ReturnRawBinaryContent(): Buffer
      {
         return this._binarySectionData;
      }

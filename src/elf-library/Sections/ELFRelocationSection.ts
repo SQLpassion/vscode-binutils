@@ -1,12 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { getTextOfJSDocComment } from "typescript";
 import { TreeItemCollapsibleState } from "vscode";
 import { DataItem } from "../../ELFTreeViewDataProvider";
-import { ELFFile } from "../ELFFile";
-import { ELF_RELOCATION_AARCH64_TYPE } from "../Enums";
-import { ELFDynamicLinkerSymbolTableSection } from "./ELFDynamicLinkerSymbolTableSection";
+import { ELFSectionHeader } from "../ELFSectionHeader";
+import { ELF_RELOCATION_AARCH64_TYPE, OBJECT_TYPE } from "../Enums";
 import { ELFRelocationEntry } from "./ELFRelocationEntry";
+import { ELFSymbolTableSection } from "./ELFSymbolTableSection";
 import { IELFSection } from "./IELFSection";
 
 // The length of a Relocation entry
@@ -16,14 +15,14 @@ export class ELFRelocationSection implements IELFSection
 {
     // Contains the binary section data
     private _binarySectionData: Buffer;
-    private _elfFile: ELFFile;
+    private _elfSectionHeader: ELFSectionHeader;
     private _relocationEntries : ELFRelocationEntry[];
 
     public get RelocationEntries() { return this._relocationEntries; }
 
-    constructor(elfFile: ELFFile, binarySectionData: Buffer)
+    constructor(elfSectionHeader: ELFSectionHeader, binarySectionData: Buffer)
     {
-        this._elfFile = elfFile;
+        this._elfSectionHeader = elfSectionHeader;
         this._relocationEntries = [];
         this._binarySectionData = binarySectionData;
         var relocationCount = binarySectionData.length / RELOCATION_ENTRY_LENGTH;
@@ -38,29 +37,23 @@ export class ELFRelocationSection implements IELFSection
     }
 
     // Returns the raw binary hex content for the ELF section
-    ReturnUIContent(): DataItem []
+    public ReturnUIContent(): DataItem []
     {
-        var content : DataItem[];
-        content = [];
-
         var content : DataItem[];
         content = [];
 
         // Iterate through each Relocation entry
         for (var i = 0; i < this._relocationEntries.length; i++)
         {
-            // var symbols = this._elfFile.GetDynamicLinkerSymbolTableSection().Symbols;
-            var section = this._elfFile.GetDynamicLinkerSymbolTableSection();
-            var relocationEntry: DataItem;
+            var symbolSection = this._elfSectionHeader.ELFFile.SectionHeaders[this._elfSectionHeader.Link - 1].Section as ELFSymbolTableSection;
+            var name = symbolSection.Symbols[this._relocationEntries[i].Symbol].Name;
 
-            if (section !== undefined)
+            if (this._elfSectionHeader.ELFFile.ObjectType === OBJECT_TYPE.RELOCATABLE)
             {
-                relocationEntry = new DataItem(section.Symbols[this._relocationEntries[i].Symbol].Name + " (" + ELF_RELOCATION_AARCH64_TYPE[this._relocationEntries[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "binarydata.png"); 
+                name = symbolSection.Symbols[this._relocationEntries[i].Symbol].SectionName;
             }
-            else
-            {
-                relocationEntry = new DataItem(this._relocationEntries[i].Symbol + " (" + ELF_RELOCATION_AARCH64_TYPE[this._relocationEntries[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "binarydata.png"); 
-            }
+
+            var relocationEntry = new DataItem(name + " (" + ELF_RELOCATION_AARCH64_TYPE[this._relocationEntries[i].Type] + ")", TreeItemCollapsibleState.Collapsed, "binarydata.png"); 
 
             relocationEntry.children = [];
             relocationEntry.children.push(new DataItem("Offset: 0x" + this._relocationEntries[i].Offset.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
@@ -73,7 +66,7 @@ export class ELFRelocationSection implements IELFSection
     }
 
     // Returns the raw binary content from the ELF Section
-    ReturnRawBinaryContent(): Buffer
+    public ReturnRawBinaryContent(): Buffer
     {
        return this._binarySectionData;
     }

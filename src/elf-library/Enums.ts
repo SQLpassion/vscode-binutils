@@ -72,7 +72,9 @@ export enum ELF_SECTION_OFFSET
     FLAGS =             8,
     VIRTUAL_ADDRESS =   16,
     OFFSET =            24,
-    SIZE =              32
+    SIZE =              32,
+    LINK =              40,
+    INFO =              44
 }
 
 // The various section header types

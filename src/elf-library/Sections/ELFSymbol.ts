@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 
-import { ELFFile } from "../ELFFile";
 import { ELF_SYMBOL_BINDING, ELF_SYMBOL_TABLE_OFFSET, ELF_SYMBOL_TYPE, ELF_SYMBOL_VISIBILITY } from "../Enums";
+import { ELFSymbolTableSection } from "./ELFSymbolTableSection";
 
 export class ELFSymbol
 {
-    private _elfFile: ELFFile;
+    private _elfSymbolTableSection: ELFSymbolTableSection;
     private _nameIndex: number;
     private _type: ELF_SYMBOL_TYPE;
     private _binding: ELF_SYMBOL_BINDING;
@@ -23,15 +23,16 @@ export class ELFSymbol
     // Returns the name of the symbol, which is resolved through the String Table
     public get Name()
     {
-        // Resolve the symbol name through the String Table
-        var stringTable = this._elfFile.GetStringTableSection().ReturnRawBinaryContent().toString();
+        // Get a reference to the String Table through the "Link" property in the Section Header.
+        // The "Link" property is decremented by 1, because we have discarded the NULL section.
+        var stringTable = this._elfSymbolTableSection.SectionHeader.ELFFile.SectionHeaders[this._elfSymbolTableSection.SectionHeader.Link - 1].Section.ReturnRawBinaryContent().toString();
         var symbolName = stringTable.substring(this._nameIndex);
         var end = symbolName.indexOf("\0");
         symbolName = symbolName.substring(0, end);
 
         if (symbolName === "")
         {
-            symbolName = "*** NO ASSOCIATED NAME ***";
+            symbolName = "*** UNDEFINED ***";
         }
        
         // Return the resolved Symbol name
@@ -41,20 +42,23 @@ export class ELFSymbol
     // Returns the associated Section name
     public get SectionName()
     {
-        for (var i = 0; i < this._elfFile.SectionHeaders.length; i++)
+        // Get all Section Headers
+        var sectionHeaders = this._elfSymbolTableSection.SectionHeader.ELFFile.SectionHeaders;
+
+        for (var i = 0; i < sectionHeaders.length; i++)
         {
-            if (this._elfFile.SectionHeaders[i].SectionIndex === this._sectionIndex)
+            if (sectionHeaders[i].SectionIndex === this._sectionIndex)
             {
-                return this._elfFile.SectionHeaders[i].Name;
+                return sectionHeaders[i].Name;
             }
         }
-
-        return "*** NO ASSOCIATED SECTION *** ";
+        
+        return "*** UNDEFINED *** ";
     }
 
-    constructor(elfBinarySectionData: Buffer, elfFile: ELFFile)
+    constructor(elfBinarySectionData: Buffer, elfSymbolTableSection: ELFSymbolTableSection)
     {
-        this._elfFile = elfFile;
+        this._elfSymbolTableSection = elfSymbolTableSection;
         
         // Extract the binary data
         this._nameIndex = elfBinarySectionData.readUInt32LE(ELF_SYMBOL_TABLE_OFFSET.NAME);

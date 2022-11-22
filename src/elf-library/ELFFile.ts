@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as fs from 'fs';
-import { isVariableStatement } from 'typescript';
 import { ELFProgramHeader } from './ELFProgramHeader';
 import { ELFSectionHeader } from './ELFSectionHeader';
 import { ARCHITECTURE, DATA_ENCODING, ELF_CLASS, ELF_HEADER_OFFSET, OBJECT_TYPE } from "./Enums";
-import { ELFDynamicLinkerSymbolTableSection } from './Sections/ELFDynamicLinkerSymbolTableSection';
-import { ELFStringTableSection } from './Sections/ELFStringTableSection';
 import { ELFSymbolTableSection } from './Sections/ELFSymbolTableSection';
 
 export class ELFFile
@@ -78,7 +75,7 @@ export class ELFFile
     }
 
     // Reads the whole ELF file header
-    ReadELFHeader(): void
+    public ReadELFHeader(): void
     {
         // Read the magic constant
         this._magicConstant = 
@@ -107,7 +104,7 @@ export class ELFFile
     }
 
     // Reads the string table
-    ReadSectionHeaderStringTable(): void
+    public ReadSectionHeaderStringTable(): void
     {
         // Read the string table data
         var offset = Number(this._sectionHeaderOffset) + Number(this._stringTableSectionIndex) * this._sectionHeaderSize;
@@ -116,7 +113,7 @@ export class ELFFile
     }
 
     // Reads the various ELF section headers
-    ReadSectionHeaders(): ELFSectionHeader []
+    public ReadSectionHeaders(): ELFSectionHeader []
     {
         var offset = this._sectionHeaderOffset;
         var sections : ELFSectionHeader[];
@@ -145,7 +142,7 @@ export class ELFFile
     }
 
     // Reads the various ELF program headers
-    ReadProgramHeaders(Sections: ELFSectionHeader []): ELFProgramHeader []
+    public ReadProgramHeaders(Sections: ELFSectionHeader []): ELFProgramHeader []
     {
         var offset = this._programHeaderOffset;
         var segments : ELFProgramHeader [];
@@ -164,38 +161,8 @@ export class ELFFile
         return segments;
     }
 
-    // Returns the String Table Section
-    GetStringTableSection(): ELFStringTableSection
-    {
-        for (var i = 0; i < this._numberOfSections; i++)
-        {
-            if (this.SectionHeaders[i].Name === ".strtab")
-            {
-                return this.SectionHeaders[i].Section as ELFStringTableSection;
-            }
-        }
-
-        // The String Table Section was not found
-        throw new Error("The String Table Section was not found.");
-    }
-
-    // Returns the String Table Section
-    GetDynamicLinkerStringTableSection(): ELFStringTableSection
-    {
-        for (var i = 0; i < this._numberOfSections; i++)
-        {
-            if (this.SectionHeaders[i].Name === ".dynstr")
-            {
-                return this.SectionHeaders[i].Section as ELFStringTableSection;
-            }
-        }
-
-        // The String Table Section was not found
-        throw new Error("The Dynamic Linker String Table Section was not found.");
-    }
-
     // Returns the Symbol Table Section
-    GetSymbolTableSection(): ELFSymbolTableSection | undefined
+    public GetSymbolTableSection(): ELFSymbolTableSection | undefined
     {
         for (var i = 0; i < this._numberOfSections; i++)
         {
@@ -206,21 +173,6 @@ export class ELFFile
         }
 
         // The String Table Section was not found (a stripped binary doesn't have a Symbol section!)
-        return undefined;
-    }
-
-    // Returns the Dynamic Linker Symbol Table Section
-    GetDynamicLinkerSymbolTableSection(): ELFDynamicLinkerSymbolTableSection | undefined
-    {
-        for (var i = 0; i < this._numberOfSections; i++)
-        {
-            if (this.SectionHeaders[i].Name === ".dynsym")
-            {
-                return this.SectionHeaders[i].Section as ELFDynamicLinkerSymbolTableSection;
-            }
-        }
-
-        // The String Table Section was not found
         return undefined;
     }
 }

@@ -1,6 +1,4 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { timingSafeEqual } from "crypto";
-import internal = require("stream");
 import { IELFSection } from "./Sections/IELFSection";
 import { ELFDefaultSection } from "./Sections/ELFDefaultSection";
 import { ELFRelocationSection } from "./Sections/ELFRelocationSection";
@@ -8,7 +6,6 @@ import { ELF_SECTION_FLAGS, ELF_SECTION_OFFSET, ELF_SECTION_TYPE } from "./Enums
 import { ELFSymbolTableSection } from "./Sections/ELFSymbolTableSection";
 import { ELFFile } from "./ELFFile";
 import { ELFStringTableSection } from "./Sections/ELFStringTableSection";
-import { ELFDynamicLinkerSymbolTableSection } from "./Sections/ELFDynamicLinkerSymbolTableSection";
 
 export class ELFSectionHeader
 {
@@ -23,6 +20,8 @@ export class ELFSectionHeader
     private _size: bigint;
     private _section: IELFSection;
     private _sectionIndex: number;
+    private _link: number;
+    private _info: number;
 
     // Public accessors
     public get ELFFile() { return this._elfFile; }
@@ -44,6 +43,8 @@ export class ELFSectionHeader
     public get HoldsThreadLocalData() { return (Number(this._flags) & 1 << ELF_SECTION_FLAGS.TLS) !== 0 ? true : false; }
     public get Section() { return this._section; }
     public get SectionIndex() { return this._sectionIndex; }
+    public get Link() { return this._link; }
+    public get Info() { return this._info; }
 
     constructor(elfFile: ELFFile, sectionIndex: number, elfBinaryData: Buffer, startOffset: number, endOffset: number, sectionHeaderstringTable?: string)
     {
@@ -60,6 +61,8 @@ export class ELFSectionHeader
         this._virtualAddress = binaryDataSectionHeader.readBigUint64LE(ELF_SECTION_OFFSET.VIRTUAL_ADDRESS);
         this._offset = binaryDataSectionHeader.readBigUint64LE(ELF_SECTION_OFFSET.OFFSET);
         this._size = binaryDataSectionHeader.readBigUint64LE(ELF_SECTION_OFFSET.SIZE);
+        this._link = binaryDataSectionHeader.readUInt32LE(ELF_SECTION_OFFSET.LINK);
+        this._info = binaryDataSectionHeader.readUInt32LE(ELF_SECTION_OFFSET.INFO);
         this._name = "N/A";
 
         if (typeof sectionHeaderstringTable !== "undefined")
@@ -82,17 +85,17 @@ export class ELFSectionHeader
         {
             case ELF_SECTION_TYPE.SYMBOL_TABLE:
             {
-                section = new ELFSymbolTableSection(this.ELFFile, sectionBinaryData);
+                section = new ELFSymbolTableSection(this, sectionBinaryData);
                 break;
             }
             case ELF_SECTION_TYPE.DYNAMIC_LINKER_SYMBOL_TABLE:
             {
-                section = new ELFDynamicLinkerSymbolTableSection(this.ELFFile, sectionBinaryData);
+                section = new ELFSymbolTableSection(this, sectionBinaryData);
                 break;
             }
             case ELF_SECTION_TYPE.RELOCATION_ENTRIES:
             {
-                section = new ELFRelocationSection(this.ELFFile, sectionBinaryData);
+                section = new ELFRelocationSection(this, sectionBinaryData);
                 break;
             }
             case ELF_SECTION_TYPE.STRING_TABLE:

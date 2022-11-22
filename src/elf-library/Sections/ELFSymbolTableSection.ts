@@ -2,7 +2,7 @@
 
 import { TreeItemCollapsibleState } from "vscode";
 import { DataItem } from "../../ELFTreeViewDataProvider";
-import { ELFFile } from "../ELFFile";
+import { ELFSectionHeader } from "../ELFSectionHeader";
 import { ELFSymbol } from "./ELFSymbol";
 import { IELFSection } from "./IELFSection";
 import { ELF_SYMBOL_TYPE, ELF_SYMBOL_BINDING, ELF_SYMBOL_VISIBILITY } from "../Enums";
@@ -14,13 +14,14 @@ export class ELFSymbolTableSection implements IELFSection
 {
     private _symbols : ELFSymbol[];
     private _binarySectionData: Buffer;
-    private _elfFile: ELFFile;
+    private _elfSectionHeader: ELFSectionHeader;
 
     public get Symbols() { return this._symbols; }
+    public get SectionHeader() { return this._elfSectionHeader; }
 
-    constructor(elfFile: ELFFile, binarySectionData: Buffer)
+    constructor(elfSectionHeader: ELFSectionHeader, binarySectionData: Buffer)
     {
-        this._elfFile = elfFile;
+        this._elfSectionHeader = elfSectionHeader;
         this._symbols = [];
         this._binarySectionData = binarySectionData;
         var symbolCount = binarySectionData.length / SYMBOL_ENTRY_LENGTH;
@@ -29,7 +30,7 @@ export class ELFSymbolTableSection implements IELFSection
         // Add each found symbol to the Symbol Table
         for (var i = 0; i < symbolCount; i++)
         {
-            this._symbols.push(new ELFSymbol(binarySectionData.subarray(currentOffset, currentOffset + SYMBOL_ENTRY_LENGTH), elfFile));
+            this._symbols.push(new ELFSymbol(binarySectionData.subarray(currentOffset, currentOffset + SYMBOL_ENTRY_LENGTH), this));
             currentOffset += SYMBOL_ENTRY_LENGTH;
         }
     }

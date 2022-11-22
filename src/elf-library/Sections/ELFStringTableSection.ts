@@ -15,7 +15,7 @@ export class ELFStringTableSection implements IELFSection
     }
 
     // Returns the raw binary hex content for the ELF section
-    ReturnUIContent(): DataItem []
+    public ReturnUIContent(): DataItem []
     {
         var content : DataItem[];
         content = [];
@@ -34,7 +34,7 @@ export class ELFStringTableSection implements IELFSection
     }
 
     // Returns the raw binary content from the ELF Section
-    ReturnRawBinaryContent(): Buffer
+    public ReturnRawBinaryContent(): Buffer
     {
        return this._binarySectionData;
     }
