@@ -4,8 +4,9 @@ import { isVariableStatement } from 'typescript';
 import { ELFProgramHeader } from './ELFProgramHeader';
 import { ELFSectionHeader } from './ELFSectionHeader';
 import { ARCHITECTURE, DATA_ENCODING, ELF_CLASS, ELF_HEADER_OFFSET, OBJECT_TYPE } from "./Enums";
+import { ELFDynamicLinkerSymbolTableSection } from './Sections/ELFDynamicLinkerSymbolTableSection';
 import { ELFStringTableSection } from './Sections/ELFStringTableSection';
-import { ELFSymbolTable } from './Sections/ELFSymbolTable';
+import { ELFSymbolTableSection } from './Sections/ELFSymbolTableSection';
 
 export class ELFFile
 {
@@ -120,12 +121,12 @@ export class ELFFile
         var offset = this._sectionHeaderOffset;
         var sections : ELFSectionHeader[];
         sections = [];
-
+        
         for (var i = 0; i < this._numberOfSections; i++)
         {
             // Create a new ELFSectionHeader object
             var section = new ELFSectionHeader(this, i, this._binaryData, Number(offset), Number(offset) + this._sectionHeaderSize, this._stringTable);
-
+            
             // Skip the NULL section...
             if (section.Name !== "")
             {
@@ -135,6 +136,9 @@ export class ELFFile
             // Move on to the next section header
             offset += BigInt(this._sectionHeaderSize);
         }
+
+        // Decrement the number of sections by 1, because we have skipped the NULL section
+        this._numberOfSections--;
 
         // Return all found sections
         return sections;
@@ -175,18 +179,48 @@ export class ELFFile
         throw new Error("The String Table Section was not found.");
     }
 
+    // Returns the String Table Section
+    GetDynamicLinkerStringTableSection(): ELFStringTableSection
+    {
+        for (var i = 0; i < this._numberOfSections; i++)
+        {
+            if (this.SectionHeaders[i].Name === ".dynstr")
+            {
+                return this.SectionHeaders[i].Section as ELFStringTableSection;
+            }
+        }
+
+        // The String Table Section was not found
+        throw new Error("The Dynamic Linker String Table Section was not found.");
+    }
+
     // Returns the Symbol Table Section
-    GetSymbolTableSection(): ELFSymbolTable
+    GetSymbolTableSection(): ELFSymbolTableSection | undefined
     {
         for (var i = 0; i < this._numberOfSections; i++)
         {
             if (this.SectionHeaders[i].Name === ".symtab")
             {
-                return this.SectionHeaders[i].Section as ELFSymbolTable;
+                return this.SectionHeaders[i].Section as ELFSymbolTableSection;
+            }
+        }
+
+        // The String Table Section was not found (a stripped binary doesn't have a Symbol section!)
+        return undefined;
+    }
+
+    // Returns the Dynamic Linker Symbol Table Section
+    GetDynamicLinkerSymbolTableSection(): ELFDynamicLinkerSymbolTableSection | undefined
+    {
+        for (var i = 0; i < this._numberOfSections; i++)
+        {
+            if (this.SectionHeaders[i].Name === ".dynsym")
+            {
+                return this.SectionHeaders[i].Section as ELFDynamicLinkerSymbolTableSection;
             }
         }
 
         // The String Table Section was not found
-        throw new Error("The String Table Section was not found.");
+        return undefined;
     }
 }

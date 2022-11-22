@@ -79,13 +79,11 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
             if (elfFile.SectionHeaders[i].HoldsThreadLocalData)
                 {flags.children.push(new DataItem("Holds Thread-Local Storage (T)", TreeItemCollapsibleState.None, "binarydata.png"));}
 
-            // Content
-            var content = new DataItem("Content", TreeItemCollapsibleState.Collapsed, "sections.png");
+            // Get the Section specific content
+            var data = elfFile.SectionHeaders[i].Section.ReturnUIContent();
+            var content = new DataItem("Content (" + data.length.toString() + ")", TreeItemCollapsibleState.Collapsed, "sections.png");
             content.children = [];
             sectionHeader.children.push(content);
-
-            // Get the Section specific content
-            var data: DataItem [] = elfFile.SectionHeaders[i].Section.ReturnUIContent();
 
             // Add the Section specific content to the TreeView
             for (j = 0; j < data.length; j++)
@@ -93,17 +91,21 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
                 content.children.push(data[j]);
             }
 
-            // Symbols
-            var symbols = new DataItem("Symbols", TreeItemCollapsibleState.Collapsed, "sections.png");
-            symbols.children = [];
-            sectionHeader.children.push(symbols);
-
             // Get the Symbols for the current section
-            var symbolItems = elfFile.GetSymbolTableSection().GetSymbolsForSection(elfFile.SectionHeaders[i].Name);
+            var symbolSection = elfFile.GetSymbolTableSection();
 
-            for (j = 0; j < symbolItems.length; j++)
+            // Check, if we have found a Symbol section (a stripped binary doesn't have a Symbol section!)
+            if (symbolSection !== undefined)
             {
-                symbols.children.push(symbolItems[j]);
+                var symbolItems = symbolSection.GetSymbolsForSection(elfFile.SectionHeaders[i].Name);
+                var symbols = new DataItem("Symbols (" + symbolItems.length.toString() + ")", TreeItemCollapsibleState.Collapsed, "sections.png");
+                symbols.children = [];
+                sectionHeader.children.push(symbols);
+
+                for (j = 0; j < symbolItems.length; j++)
+                {
+                    symbols.children.push(symbolItems[j]);
+                }
             }
         }
 
@@ -129,7 +131,7 @@ export class ELFTreeViewDataProvider implements TreeDataProvider<DataItem>
             segment.children.push(new DataItem("Alignment: 0x" + elfFile.Segments[i].Alignment.toString(16).toUpperCase(), TreeItemCollapsibleState.None, "binarydata.png"));
 
             // Flags
-            let flags = new DataItem("Flags", TreeItemCollapsibleState.Expanded, "sections.png");
+            let flags = new DataItem("Flags", TreeItemCollapsibleState.Collapsed, "sections.png");
             flags.children = [];
             segment.children.push(flags);
 

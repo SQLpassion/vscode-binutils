@@ -3,10 +3,12 @@ import { timingSafeEqual } from "crypto";
 import internal = require("stream");
 import { IELFSection } from "./Sections/IELFSection";
 import { ELFDefaultSection } from "./Sections/ELFDefaultSection";
+import { ELFRelocationSection } from "./Sections/ELFRelocationSection";
 import { ELF_SECTION_FLAGS, ELF_SECTION_OFFSET, ELF_SECTION_TYPE } from "./Enums";
-import { ELFSymbolTable } from "./Sections/ELFSymbolTable";
+import { ELFSymbolTableSection } from "./Sections/ELFSymbolTableSection";
 import { ELFFile } from "./ELFFile";
 import { ELFStringTableSection } from "./Sections/ELFStringTableSection";
+import { ELFDynamicLinkerSymbolTableSection } from "./Sections/ELFDynamicLinkerSymbolTableSection";
 
 export class ELFSectionHeader
 {
@@ -80,7 +82,17 @@ export class ELFSectionHeader
         {
             case ELF_SECTION_TYPE.SYMBOL_TABLE:
             {
-                section = new ELFSymbolTable(this.ELFFile, sectionBinaryData);
+                section = new ELFSymbolTableSection(this.ELFFile, sectionBinaryData);
+                break;
+            }
+            case ELF_SECTION_TYPE.DYNAMIC_LINKER_SYMBOL_TABLE:
+            {
+                section = new ELFDynamicLinkerSymbolTableSection(this.ELFFile, sectionBinaryData);
+                break;
+            }
+            case ELF_SECTION_TYPE.RELOCATION_ENTRIES:
+            {
+                section = new ELFRelocationSection(this.ELFFile, sectionBinaryData);
                 break;
             }
             case ELF_SECTION_TYPE.STRING_TABLE:
