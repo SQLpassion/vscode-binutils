@@ -77,8 +77,14 @@ export class ELFFile
     // Reads the whole ELF file header
     public ReadELFHeader(): void
     {
-        // Read the magic constant
-        this._magicConstant = 
+        // Check for the ELF magic value
+        if ((this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC0) === 0x7F) &&
+            (this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC1) === 0x45) &&
+            (this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC2) === 0x4C) &&
+            (this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC3) === 0x46))
+        {
+            // Read the magic constant
+            this._magicConstant = 
             (this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC0).toString(16) + " " +
             this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC1).toString(16) + " " +
             this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC2).toString(16) + " " +
@@ -87,20 +93,31 @@ export class ELFFile
             String.fromCharCode(this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC2)) +
             String.fromCharCode(this._binaryData.readUint8(ELF_HEADER_OFFSET.MAGIC3)) + "')").toUpperCase();
 
-        // Read the remaining part of the ELF header
-        this._class = this._binaryData.readUint8(ELF_HEADER_OFFSET.CLASS);
-        this._dataEncoding = this._binaryData.readUint8(ELF_HEADER_OFFSET.DATA_ENCODING);
-        this._version = this._binaryData.readUint8(ELF_HEADER_OFFSET.VERSION);
-        this._objectType = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.OBJECT_TYPE);
-        this._architecture = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.ARCHITECTURE);
-        this._entryPoint = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.ENTRY_POINT);
-        this._programHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_OFFSET);
-        this._sectionHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.SECTION_HEADER_OFFSET);
-        this._sectionHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.SECTION_HEADER_SIZE);
-        this._programHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_SIZE);
-        this._numberOfSegments = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_COUNT);
-        this._numberOfSections = this._binaryData.readUint8(ELF_HEADER_OFFSET.SECTION_COUNT);
-        this._stringTableSectionIndex = this._binaryData.readUint8(ELF_HEADER_OFFSET.STRING_TABLE_SECTION_INDEX);
+            // Read the remaining part of the ELF header
+            this._class = this._binaryData.readUint8(ELF_HEADER_OFFSET.CLASS);
+            this._dataEncoding = this._binaryData.readUint8(ELF_HEADER_OFFSET.DATA_ENCODING);
+            this._version = this._binaryData.readUint8(ELF_HEADER_OFFSET.VERSION);
+            this._objectType = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.OBJECT_TYPE);
+            this._architecture = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.ARCHITECTURE);
+            this._entryPoint = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.ENTRY_POINT);
+            this._programHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_OFFSET);
+            this._sectionHeaderOffset = this._binaryData.readBigUint64LE(ELF_HEADER_OFFSET.SECTION_HEADER_OFFSET);
+            this._sectionHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.SECTION_HEADER_SIZE);
+            this._programHeaderSize = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_SIZE);
+            this._numberOfSegments = this._binaryData.readUint16LE(ELF_HEADER_OFFSET.PROGRAM_HEADER_COUNT);
+            this._numberOfSections = this._binaryData.readUint8(ELF_HEADER_OFFSET.SECTION_COUNT);
+            this._stringTableSectionIndex = this._binaryData.readUint8(ELF_HEADER_OFFSET.STRING_TABLE_SECTION_INDEX);
+
+            // Check if the ELF file has a supported architecture
+            if ((this._architecture !== ARCHITECTURE.AARCH64) && (this.Architecture !== ARCHITECTURE.X86_64))
+            {
+                throw new Error("Unknown architecture. The following architectures are currently supported: AARCH64, X86_64");
+            }
+        }
+        else
+        {
+            throw new Error("This is not a valid ELF file.");
+        }
     }
 
     // Reads the string table
