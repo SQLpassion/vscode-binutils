@@ -2,7 +2,16 @@
   "name": "vscode-binutils",
   "displayName": "vscode-binutils",
   "description": "Utilities to analyze binary files directly within Visual Studio Code",
+  "publisher": "Klaus Aschenbrenner (SQLpassion)",
+  "homepage": "https://www.SQLpassion.at",
   "version": "0.0.1",
+  "contributors": ["Klaus Aschenbrenner"],
+  "license": "MIT",
+  "icon": "media/binarydata.png",
+  "maintainers": ["Klaus Aschenbrenner"],
+  "repository": {
+    "url": "https://github.com/SQLpassion/vscode-binutils"
+  },
   "engines": {
     "vscode": "^1.73.0"
   },
