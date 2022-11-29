@@ -20,6 +20,16 @@ After you have selected the binary file, you can explore its content through the
 
 ![The Binary File Viewer extension](media/ELFFileViewer.png)
 
+## Features
+The `vscode-binutils` extension currently parses the following information from `Linux ELF files`:
+
+* ELF Header
+* Sections
+* Segments
+* Symbol Tables
+* Relocation Entries
+* String Tables
+
 ## Extension Settings
 
 The extension has currently no user-defined setttings that you have to worry about.
@@ -27,6 +37,6 @@ The extension has currently no user-defined setttings that you have to worry abo
 ## For more information
 
 * [SQLpassion Website](https://www.SQLpassion.at)
-* [Github Repository](https://www.github.com/sqlpassion/vscode-binutils)
+* [GitHub Repository](https://www.github.com/sqlpassion/vscode-binutils)
 
 **Enjoy!**

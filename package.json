@@ -2,7 +2,7 @@
   "name": "vscode-binutils",
   "displayName": "vscode-binutils",
   "description": "Utilities to analyze binary files directly within Visual Studio Code",
-  "publisher": "Klaus Aschenbrenner (SQLpassion)",
+  "publisher": "SQLpassion",
   "homepage": "https://www.SQLpassion.at",
   "version": "0.0.1",
   "contributors": ["Klaus Aschenbrenner"],
@@ -33,7 +33,7 @@
       "activitybar": [
         {
           "id": "elf-explorer",
-          "title": "SQLpassion BinUtils",
+          "title": "vscode-binutils",
           "icon": "media/dep.svg"
         }
       ]
@@ -42,7 +42,7 @@
       "elf-explorer": [
         {
           "id": "elfBinaryViewer",
-          "name": "ELF File Reader",
+          "name": "ELF Binary File Viewer",
           "icon": "media/dep.svg",
           "contextualTitle": ""
         }
